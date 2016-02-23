@@ -17,6 +17,8 @@
 import webapp2
 import cgi
 import re
+import logging
+from array import *
 
 welcome_user = ""
 
@@ -79,6 +81,22 @@ def valid_email(email):
 	if not email:
 		return True
 	return EMAIL_RE.match(email)
+
+def clrs2_2_2(n, myList):
+	for j in range(0, n-1, 1):
+		key = j
+		logging.debug("for j=%s", str(j))
+		for i in range(j+1, n, 1):
+			logging.debug("for i=%s", str(i))
+			if myList[i] < myList[key]:
+				logging.debug("key=%s", str(key))
+				key = i
+		if key>j:
+			logging.debug("switch key=%s|j=%s", str(key), str(j))
+			temp = myList[j]
+			myList[j] = myList[key]
+			myList[key] = temp
+	return myList
 	
 class MainHandler(webapp2.RequestHandler):
 	def write_form(self, username="", username_error="", password_error="", verify_error="", email="", email_error=""):
@@ -88,7 +106,9 @@ class MainHandler(webapp2.RequestHandler):
 									"verify_error": verify_error,
 									"email": email,
 									"email_error": email_error})
-		
+	
+	logging.info("info")
+	logging.debug("debug")
 	def get(self):
 		self.write_form()
 
@@ -134,12 +154,21 @@ class MainHandler(webapp2.RequestHandler):
 			welcome_user = user_username
 			self.redirect("/welcome")
 			
+class clrs2_2_2Handler(webapp2.RequestHandler):
+	def get(self):
+		myArray = array('i',[4, 5, 1, 3, 2])
+		self.response.write("clrs2_2_2: Array %(Array1)s sorted to "%{"Array1":myArray})
+		sortedArray = clrs2_2_2(5, myArray)
+		#sortedArray = myArray
+		self.response.write("Array %(Array2)s."%{"Array2":sortedArray})
 
+			
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
 		self.response.write("Welcome, %(username)s."%{"username":welcome_user})
 		
 app = webapp2.WSGIApplication([
 	('/', MainHandler),
+	('/clrs2_2_2', clrs2_2_2Handler),
 	('/welcome', WelcomeHandler)
 ], debug=True)
