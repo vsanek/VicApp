@@ -97,6 +97,144 @@ def clrs2_2_2(n, myList):
 			myList[j] = myList[key]
 			myList[key] = temp
 	return myList
+
+def clrs2_3_5r(size, start, end, myList, value):
+	logging.debug("start=%s|end=%s", str(start), str(end))
+	if start > end:
+		return
+	
+	h = (end + start) / 2
+	logging.debug("h=%s|myList[h]=%s", str(h), str(myList[h]))
+	if (myList[h] == value):
+		logging.debug("SUCCESS")
+		return h
+	if myList[h] < value:
+		logging.debug("upper")
+		ret = clrs2_3_5r(size, h+1, end, myList, value)
+	else:
+		logging.debug("lower")
+		ret = clrs2_3_5r(size, start, h-1, myList, value)
+	return ret
+
+def clrs2_3_5i(size, start, end, myList, value):
+	if start > end:
+		return
+
+	if value > myList[end] or value < myList[start]:
+		return
+	
+	while (end - start) > 0:
+		logging.debug("start=%s|end=%s", str(start), str(end))
+		if end - start == 1:
+			if myList[start] == value:
+				return start
+			elif myList[end] == value:
+				return end
+			else:
+				return
+		
+		mid = (end + start) / 2
+		logging.debug("mid=%s|myList[mid]=%s", str(mid), str(myList[mid]))
+		
+		if (myList[mid] == value):
+			logging.debug("SUCCESS")
+			return mid
+		elif myList[mid] < value:
+			logging.debug("upper")
+			start = mid
+		else:
+			logging.debug("lower")
+			end = mid
+
+	return
+
+def clrs2_3_5ii(size, start, end, A, value):
+	while start < end:
+		logging.debug("start=%s|end=%s", str(start), str(end))
+
+		mid = (end + start) / 2
+		logging.debug("mid=%s|A[mid]=%s", str(mid), str(A[mid]))
+		
+		if value == A[mid]:
+			logging.debug("SUCCESS")
+			return mid
+		elif value > A[mid]:
+			logging.debug("upper")
+			start = mid + 1
+		else:
+			logging.debug("lower")
+			end = mid - 1
+
+	return
+	
+def dump_array(output, size, myList):
+	logging.debug("%s dump_array myList: %s,%s,%s,%s,%s", output, str(myList[0]), str(myList[1]), str(myList[2]), str(myList[3]), str(myList[4]))
+	
+def dump_leftArray(size, leftArray):
+	logging.debug("dump_array leftArray[%s]: %s,%s", size, str(leftArray[0]), str(leftArray[1]))
+
+def dump_rightArray(size, rightArray):
+	logging.debug("dump_array rightArray[%s]: %s,%s", size, str(rightArray[0]), str(rightArray[1]))
+	
+def clrs_merge(size, p, q, r, myList):
+	dump_array("clrs_merge START", size, myList)
+	logging.debug("clrs_merge:p=%s|q=%s|r=%s", str(p), str(q), str(r))
+
+	leftSize = q-p+1+1
+	leftArray = [0] * leftSize
+	for i in range(0, leftSize):
+		leftArray[i]=myList[p+i]
+	leftArray[i]=10000
+	dump_leftArray(leftSize, leftArray)
+	
+	rightSize = r-q+1
+	rightArray = [0] * rightSize
+	for j in range(0, rightSize):
+		rightArray[j]=myList[q+1+j]
+	rightArray[j]=10000
+	dump_rightArray(rightSize, rightArray)
+	
+	i = 0
+	j = 0
+	rightSize -= 1
+	leftSize -= 1
+	for k in range(p, r):
+		if leftSize == 0:
+			myList[k] = rightArray[j]
+			j += 1
+			rightSize -= 1
+		elif rightSize == 0:
+			myList[k] = leftArray[i]
+			i += 1
+			leftSize -= 1
+		elif leftArray[i] < rightArray[j]:
+			myList[k] = leftArray[i]
+			i += 1
+			leftSize -= 1
+		else:
+			myList[k] = rightArray[j]
+			j += 1
+			rightSize -= 1
+	
+	dump_array("clrs_merge END", size, myList)	
+	return myList
+
+def clrs_merge_sort(size, p, r, myList):
+	if p >= r:
+		logging.debug("Do not enter clrs_merge_sort:p=%s|r=%s", str(p), str(r))
+		return myList
+		
+	q = (p + r)/2
+	dump_array("clrs_merge_sort START", size, myList)	
+	logging.debug("clrs_merge_sort:p=%s|q=%s|r=%s", str(p), str(q), str(r))
+	dump_array("Before 1. clrs_merge_sort", size, myList)	
+	clrs_merge_sort(size, p, q, myList)
+	dump_array("Before 2. clrs_merge_sort", size, myList)	
+	clrs_merge_sort(size, q + 1, r, myList)
+	clrs_merge(size, p, q, r, myList)
+
+	dump_array("clrs_merge_sort END", size, myList)
+	return myList
 	
 class MainHandler(webapp2.RequestHandler):
 	def write_form(self, username="", username_error="", password_error="", verify_error="", email="", email_error=""):
@@ -107,8 +245,7 @@ class MainHandler(webapp2.RequestHandler):
 									"email": email,
 									"email_error": email_error})
 	
-	logging.info("info")
-	logging.debug("debug")
+	logging.debug("***MainHandler***")
 	def get(self):
 		self.write_form()
 
@@ -156,13 +293,49 @@ class MainHandler(webapp2.RequestHandler):
 			
 class clrs2_2_2Handler(webapp2.RequestHandler):
 	def get(self):
+		logging.debug("***clrs2_2_2Handler***")
 		myArray = array('i',[4, 5, 1, 3, 2])
 		self.response.write("clrs2_2_2: Array %(Array1)s sorted to "%{"Array1":myArray})
 		sortedArray = clrs2_2_2(5, myArray)
 		#sortedArray = myArray
 		self.response.write("Array %(Array2)s."%{"Array2":sortedArray})
 
-			
+class clrs2_3_5rHandler(webapp2.RequestHandler):
+	def get(self):
+		logging.debug("***clrs2_3_5rHandler***")
+		myArray = array('i',[1, 3, 7, 9, 10, 12, 25])
+		self.response.write("clrs2_3_5r: Value 25 found in array %(Array1)s sorted to "%{"Array1":myArray})
+		index = clrs2_3_5r(7, 0, 6, myArray, 25)
+		logging.debug("received index=%s", index)
+		if index >= 0:
+			index = int(index)
+			index += 1
+			logging.debug("modified index=%s", str(index))
+		self.response.write("Position %(Array2)s."%{"Array2":index})
+
+class clrs2_3_5iHandler(webapp2.RequestHandler):
+	def get(self):
+		logging.debug("***clrs2_3_5iHandler***")
+		myArray = array('i',[1, 3, 7, 9, 10, 12, 25])
+		self.response.write("clrs2_3_5i: Value 25 found in array %(Array1)s sorted to "%{"Array1":myArray})
+		index = clrs2_3_5i(7, 0, 6, myArray, 25)
+		logging.debug("received index=%s", index)
+		if index >= 0:
+			index = int(index)
+			index += 1
+			logging.debug("modified index=%s", str(index))
+		self.response.write("Position %(Array2)s."%{"Array2":index})
+
+class clrs_merge_sortHandler(webapp2.RequestHandler):
+	def get(self):
+		logging.debug("***clrs_merge_sortHandler***")
+		myArray = array('i',[5, 4, 3, 1, 2])
+		self.response.write("clrs_merge_sort: Array %(Array1)s sorted to "%{"Array1":myArray})
+		sortedArray = clrs_merge_sort(5, 0, 4, myArray)
+		#sortedArray = myArray
+		self.response.write("Array %(Array2)s."%{"Array2":sortedArray})
+
+		
 class WelcomeHandler(webapp2.RequestHandler):
 	def get(self):
 		self.response.write("Welcome, %(username)s."%{"username":welcome_user})
@@ -170,5 +343,8 @@ class WelcomeHandler(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
 	('/', MainHandler),
 	('/clrs2_2_2', clrs2_2_2Handler),
+	('/clrs2_3_5r', clrs2_3_5rHandler),
+	('/clrs2_3_5i', clrs2_3_5iHandler),
+	('/clrs_merge_sort', clrs_merge_sortHandler),
 	('/welcome', WelcomeHandler)
 ], debug=True)
